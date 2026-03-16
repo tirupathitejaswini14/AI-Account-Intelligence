@@ -91,6 +91,7 @@ export function AccountCard({ account, className }: AccountCardProps) {
   } = latestEnrichment
 
   const companyProfile = raw_visitor_data?._meta?.companyProfile
+  const intentSignals: string[] = raw_visitor_data?._meta?.preComputedIntent?.signals ?? []
 
   return (
     <div className={cn(
@@ -326,14 +327,14 @@ export function AccountCard({ account, className }: AccountCardProps) {
           <div className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-3 flex items-center gap-1.5">
             <TrendingUp className="h-3.5 w-3.5" /> Intent Signals
           </div>
-          {business_signals && business_signals.length > 0 ? (
+          {intentSignals.length > 0 ? (
             <ul className="space-y-2 stagger-children">
-              {business_signals.slice(0, 5).map((signal, i) => (
+              {intentSignals.slice(0, 5).map((signal, i) => (
                 <li key={i} className="text-sm flex gap-2 items-start">
                   <span className="text-emerald-500 mt-0.5 flex-shrink-0">
                     <CheckCircle2 className="h-3.5 w-3.5" />
                   </span>
-                  <span className="text-foreground/80">{typeof signal === 'string' ? signal : JSON.stringify(signal)}</span>
+                  <span className="text-foreground/80">{signal}</span>
                 </li>
               ))}
             </ul>
@@ -376,14 +377,21 @@ export function AccountCard({ account, className }: AccountCardProps) {
           {tech_stack && Object.keys(tech_stack).filter(k => tech_stack[k]).length > 0 ? (
             <div className="space-y-1.5">
               {Object.entries(tech_stack)
-                .filter(([_, found]) => found)
-                .slice(0, 6)
-                .map(([tech], i) => (
+                .filter(([_, v]) => v)
+                .slice(0, 8)
+                .map(([tech, v], i) => (
                 <div key={i} className="flex items-center gap-2">
-                  <span className="text-[10px] text-muted-foreground min-w-[100px]">{TECH_CATEGORIES[tech] || 'Other'}:</span>
+                  <span className="text-[10px] text-muted-foreground min-w-[110px] truncate">
+                    {typeof v === 'string' ? v : (TECH_CATEGORIES[tech] || 'Other')}:
+                  </span>
                   <span className="text-xs font-semibold text-foreground">{tech}</span>
                 </div>
               ))}
+              {Object.keys(tech_stack).filter(k => tech_stack[k]).length > 8 && (
+                <div className="text-[10px] text-muted-foreground pt-1">
+                  +{Object.keys(tech_stack).filter(k => tech_stack[k]).length - 8} more via BuiltWith
+                </div>
+              )}
             </div>
           ) : (
             <div className="text-sm text-muted-foreground flex items-center gap-2">

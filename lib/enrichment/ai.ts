@@ -12,6 +12,7 @@ const openai = new OpenAI({
 
 export type AIAnalysisInput = {
   companyName: string
+  domain?: string
   visitorData: any
   companyData: any
   techStack: any
@@ -102,11 +103,10 @@ Return a JSON object with EXACTLY these fields (no markdown, no extra text):
 }`
 
     const response = await openai.chat.completions.create({
-      model: 'openrouter/free',
+      model: 'meta-llama/llama-3.3-70b-instruct:free',
       messages: [{ role: 'user', content: prompt }],
       temperature: 0.1,
-      max_tokens: 1200,
-      response_format: { type: 'json_object' }
+      max_tokens: 1500,
     })
 
     const rawResponseText = response.choices[0]?.message?.content || '{}'
@@ -121,7 +121,13 @@ Return a JSON object with EXACTLY these fields (no markdown, no extra text):
       cleanJsonStr = cleanJsonStr.replace(/^```/, "").replace(/```$/, "")
     }
     
-    const jsonResult = JSON.parse(cleanJsonStr.trim())
+    let jsonResult: any
+    try {
+      jsonResult = JSON.parse(cleanJsonStr.trim())
+    } catch (parseError) {
+      console.error('Failed to parse LLM JSON response:', parseError, '\nRaw:', cleanJsonStr)
+      throw new Error('LLM returned invalid JSON')
+    }
     
     // Ensure all required fields exist with fallbacks
     return {
@@ -143,7 +149,7 @@ Return a JSON object with EXACTLY these fields (no markdown, no extra text):
     }
   } catch (error: any) {
     console.error('Error calling AI orchestration via OpenRouter:', error)
-    require('fs').writeFileSync('openrouter_error.log', JSON.stringify({ msg: error.message, stack: error.stack, full: error }, null, 2))
+    console.error('OpenRouter error details:', JSON.stringify({ msg: error.message, stack: error.stack }, null, 2))
     
     // AI failed — return ONLY real data, no fake data
     const estHQ = input.companyData?.headquarters || input.companyData?.location || null
@@ -153,13 +159,13 @@ Return a JSON object with EXACTLY these fields (no markdown, no extra text):
 
     return {
       intentScore: input.preComputedIntent?.score || null,
-      intentStage: input.preComputedIntent?.stage as any || null,
+      intentStage: (input.preComputedIntent?.stage as 'Awareness' | 'Evaluation' | 'Decision') || null,
       likelyPersona: input.preComputedPersona?.persona || null,
       personaConfidence: input.preComputedPersona?.confidence || null,
       aiSummary: input.companyData?.description || `${input.companyName} — additional company details require AI enrichment which is temporarily unavailable.`,
       recommendedActions: [
         `Research ${input.companyName} on LinkedIn to identify key decision makers`,
-        `Visit ${input.companyData?.domain || input.companyName + '.com'} to understand their product offerings`,
+        `Visit ${input.domain || input.companyName.toLowerCase() + '.com'} to understand their product offerings`,
         `Add ${input.companyName} to your prospecting list for manual outreach`
       ],
       extractedBusinessSignals: realSignals,

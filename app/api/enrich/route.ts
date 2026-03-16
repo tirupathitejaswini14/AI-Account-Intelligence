@@ -4,7 +4,7 @@ import { getIpInfo } from '@/lib/apis/ipapi'
 import { getCompanyLogo } from '@/lib/apis/clearbit'
 import { searchWikipedia } from '@/lib/apis/wikipedia'
 import { searchCompanyNews } from '@/lib/apis/serpapi'
-import { detectTechStack } from '@/lib/enrichment/techstack'
+import { detectTechStack, scrapeBuiltWith } from '@/lib/enrichment/techstack'
 import { inferPersona } from '@/lib/enrichment/persona'
 import { scoreIntent } from '@/lib/enrichment/intent'
 import { analyzeAccountData } from '@/lib/enrichment/ai'
@@ -23,13 +23,20 @@ export async function POST(request: Request) {
   try {
     const supabase = createClient()
     
-    // Auth is optional for demo mode — if logged in, we save to DB
+    // Auth is optional for demo mode — if logged in (or called from /api/track), we save to DB
     let userId: string | null = null
-    try {
-      const { data: { user } } = await supabase.auth.getUser()
-      userId = user?.id || null
-    } catch {
-      // Auth failed — continue in demo mode without saving to DB
+
+    // Internal calls from /api/track pass the user ID via a trusted header
+    const internalUserId = request.headers.get('x-internal-user-id')
+    if (internalUserId) {
+      userId = internalUserId
+    } else {
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        userId = user?.id || null
+      } catch {
+        // Auth failed — continue in demo mode without saving to DB
+      }
     }
 
     const body = await request.json()
@@ -48,6 +55,12 @@ export async function POST(request: Request) {
     // STEP 1: Company Identification
     // ═══════════════════════════════════════════════
     if (type === 'visitor') {
+      if (!input || typeof input !== 'object') {
+        return NextResponse.json({ error: 'Visitor input must be an object' }, { status: 400 })
+      }
+      if (!input.ip_address || typeof input.ip_address !== 'string') {
+        return NextResponse.json({ error: 'ip_address is required for visitor type' }, { status: 400 })
+      }
       visitorData = input
       const ipData = await getIpInfo(input.ip_address)
       
@@ -163,12 +176,13 @@ export async function POST(request: Request) {
     }
     
     // Fire all enrichment calls in parallel for speed
-    const [wikiData, newsData, logoUrl, techStack, websiteData] = await Promise.all([
-      searchWikipedia(companyName).catch(() => null),
-      searchCompanyNews(companyName).catch(() => []),
+    const [wikiData, newsData, logoUrl, techStack, builtWithStack, websiteData] = await Promise.all([
+      searchWikipedia(companyName).catch((e) => { console.warn('[ENRICH] Wikipedia fetch failed:', e.message); return null }),
+      searchCompanyNews(companyName).catch((e) => { console.warn('[ENRICH] News fetch failed:', e.message); return [] }),
       domain ? getCompanyLogo(domain) : Promise.resolve(null),
-      domain ? detectTechStack(`https://${domain}`).catch(() => ({})) : Promise.resolve({}),
-      domain ? scrapeCompanyWebsite(domain).catch(() => null) : Promise.resolve(null)
+      domain ? detectTechStack(`https://${domain}`).catch((e) => { console.warn('[ENRICH] TechStack detection failed:', e.message); return {} }) : Promise.resolve({}),
+      domain ? scrapeBuiltWith(domain).catch((e) => { console.warn('[ENRICH] BuiltWith scrape failed:', e.message); return {} }) : Promise.resolve({}),
+      domain ? scrapeCompanyWebsite(domain).catch((e) => { console.warn('[ENRICH] Website scrape failed:', e.message); return null }) : Promise.resolve(null)
     ])
 
     if (wikiData) {
@@ -206,14 +220,17 @@ export async function POST(request: Request) {
     console.log(`[ENRICH] After scraping - description: ${companyMetadata.description?.slice(0,80)}, HQ: ${companyMetadata.headquarters}, location: ${companyMetadata.location}`)
     
     businessSignalsData = Array.isArray(newsData) ? newsData.map((n: any) => n.title || n) : []
-    // Only use tech actually detected from the real website — no fakes
-    techStackData = techStack || {}
+
+    // Merge signature detection + BuiltWith — BuiltWith has more coverage, signature detection is fallback
+    techStackData = { ...(techStack || {}), ...(builtWithStack || {}) }
+    console.log(`[ENRICH] Tech stack: ${Object.keys(techStackData).length} technologies (${Object.keys(techStack || {}).length} signature + ${Object.keys(builtWithStack || {}).length} BuiltWith)`)
 
     // ═══════════════════════════════════════════════
     // STEP 5 & 6: AI Summary + Recommended Actions
     // ═══════════════════════════════════════════════
     const aiAnalysis = await analyzeAccountData({
       companyName,
+      domain: domain || undefined,
       visitorData,
       companyData: companyMetadata,
       techStack: techStackData,
@@ -312,7 +329,7 @@ export async function POST(request: Request) {
           accountResult.id = accountData.id
           enrichmentResult.account_id = accountData.id
 
-          const { data: enrichmentData } = await supabase
+          const { data: enrichmentData, error: enrichmentError } = await supabase
             .from('enrichments')
             .insert({
               account_id: accountData.id,
@@ -322,7 +339,9 @@ export async function POST(request: Request) {
             .select()
             .single()
 
-          if (enrichmentData) {
+          if (enrichmentError) {
+            console.warn('Enrichment insert failed (non-blocking):', enrichmentError.message)
+          } else if (enrichmentData) {
             enrichmentResult.id = enrichmentData.id
           }
         }

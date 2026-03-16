@@ -23,6 +23,12 @@ export default function AccountDetailView() {
 
   const fetchAccount = async (id: string) => {
     try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        router.push('/login')
+        return
+      }
+
       const { data, error } = await supabase
         .from('accounts')
         .select(`
@@ -30,6 +36,7 @@ export default function AccountDetailView() {
           enrichments (*)
         `)
         .eq('id', id)
+        .eq('user_id', user.id)
         .single()
 
       if (error) throw error
@@ -51,13 +58,20 @@ export default function AccountDetailView() {
   
   const handleDelete = async () => {
     if (!confirm('Are you sure you want to delete this account intelligence profile?')) return
-    
+
     try {
       setLoading(true)
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        router.push('/login')
+        return
+      }
+
       const { error } = await supabase
         .from('accounts')
         .delete()
         .eq('id', params.id as string)
+        .eq('user_id', user.id)
         
       if (error) throw error
       

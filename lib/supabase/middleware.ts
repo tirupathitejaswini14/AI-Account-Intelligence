@@ -58,8 +58,10 @@ export async function updateSession(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
 
   // Protect dashboard and enrich routes
-  const isProtectedRoute = request.nextUrl.pathname.startsWith('/dashboard') || 
-                           request.nextUrl.pathname.startsWith('/enrich')
+  const isProtectedRoute =
+    request.nextUrl.pathname.startsWith('/dashboard') ||
+    request.nextUrl.pathname.startsWith('/enrich') ||
+    request.nextUrl.pathname.startsWith('/setup')
 
   if (isProtectedRoute && !user) {
     const redirectUrl = request.nextUrl.clone()

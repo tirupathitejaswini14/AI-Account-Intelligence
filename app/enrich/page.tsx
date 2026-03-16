@@ -131,7 +131,7 @@ export default function EnrichPage() {
       .map(c => c.trim())
       .filter(Boolean)
 
-    if (companies.length === 0) return
+    if (companies.length === 0) { setIsProcessing(false); return }
 
     // Initialize batch results
     const initial: BatchResult[] = companies.map(c => ({ company: c, status: 'pending' }))
