@@ -66,6 +66,11 @@ Website Title: ${input.companyData?.websiteTitle || 'Not available'}
 Website Description: ${input.companyData?.description || 'Not available'}
 Website Content Snippet: ${input.companyData?.websiteSnippet || 'Not available'}
 
+### Pre-Scraped Leadership (from /about, /team, /leadership pages + Wikipedia — USE THESE DIRECTLY)
+${input.companyData?.leadershipHints?.length > 0
+  ? input.companyData.leadershipHints.join(', ')
+  : 'None found via scraping. Only include names you can directly attribute from the data above.'}
+
 ### Visitor Behavior (if available)
 Visitor Data: ${JSON.stringify(input.visitorData, null, 2)}
 
@@ -137,7 +142,7 @@ Return a JSON object with EXACTLY these fields (no markdown, no extra text):
       personaConfidence: jsonResult.personaConfidence ?? input.preComputedPersona?.confidence ?? null,
       aiSummary: jsonResult.aiSummary ?? 'Unable to generate summary.',
       recommendedActions: jsonResult.recommendedActions ?? ['Contact the account', 'Research further', 'Add to pipeline'],
-      extractedBusinessSignals: jsonResult.extractedBusinessSignals ?? input.preComputedIntent?.signals ?? [],
+      extractedBusinessSignals: Array.isArray(jsonResult.extractedBusinessSignals) ? jsonResult.extractedBusinessSignals : [],
       companyProfile: {
         industry: jsonResult.companyProfile?.industry ?? 'Unknown',
         estimatedSize: jsonResult.companyProfile?.estimatedSize ?? 'Unknown',
@@ -154,9 +159,6 @@ Return a JSON object with EXACTLY these fields (no markdown, no extra text):
     // AI failed — return ONLY real data, no fake data
     const estHQ = input.companyData?.headquarters || input.companyData?.location || null
 
-    // Only use real intent signals from pre-computed deterministic engine
-    const realSignals = input.preComputedIntent?.signals ?? []
-
     return {
       intentScore: input.preComputedIntent?.score || null,
       intentStage: (input.preComputedIntent?.stage as 'Awareness' | 'Evaluation' | 'Decision') || null,
@@ -168,14 +170,17 @@ Return a JSON object with EXACTLY these fields (no markdown, no extra text):
         `Visit ${input.domain || input.companyName.toLowerCase() + '.com'} to understand their product offerings`,
         `Add ${input.companyName} to your prospecting list for manual outreach`
       ],
-      extractedBusinessSignals: realSignals,
+      // Business signals come from external sources (news, SerpAPI) — not visitor behavior
+      extractedBusinessSignals: Array.isArray(input.businessSignals)
+        ? input.businessSignals.filter((s: any) => typeof s === 'string' && s.length > 0)
+        : [],
       companyProfile: {
         industry: 'Unknown',
         estimatedSize: 'Unknown',
         headquarters: estHQ || 'Unknown',
         businessModel: 'Unknown',
         keyProducts: [],
-        leadershipMentions: [],
+        leadershipMentions: input.companyData?.leadershipHints ?? [],
       }
     }
   }

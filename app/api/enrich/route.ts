@@ -8,7 +8,7 @@ import { detectTechStack, scrapeBuiltWith } from '@/lib/enrichment/techstack'
 import { inferPersona } from '@/lib/enrichment/persona'
 import { scoreIntent } from '@/lib/enrichment/intent'
 import { analyzeAccountData } from '@/lib/enrichment/ai'
-import { scrapeCompanyWebsite } from '@/lib/enrichment/webscraper'
+import { scrapeCompanyWebsite, scrapeLeadership, extractLeadershipFromWikipedia } from '@/lib/enrichment/webscraper'
 import { detectIndustryFromText, generateSummaryFromScrapedData } from '@/lib/enrichment/classifier'
 
 // ISPs and generic cloud providers — not B2B companies
@@ -176,13 +176,14 @@ export async function POST(request: Request) {
     }
     
     // Fire all enrichment calls in parallel for speed
-    const [wikiData, newsData, logoUrl, techStack, builtWithStack, websiteData] = await Promise.all([
+    const [wikiData, newsData, logoUrl, techStack, builtWithStack, websiteData, leadershipFromPages] = await Promise.all([
       searchWikipedia(companyName).catch((e) => { console.warn('[ENRICH] Wikipedia fetch failed:', e.message); return null }),
       searchCompanyNews(companyName).catch((e) => { console.warn('[ENRICH] News fetch failed:', e.message); return [] }),
       domain ? getCompanyLogo(domain) : Promise.resolve(null),
       domain ? detectTechStack(`https://${domain}`).catch((e) => { console.warn('[ENRICH] TechStack detection failed:', e.message); return {} }) : Promise.resolve({}),
       domain ? scrapeBuiltWith(domain).catch((e) => { console.warn('[ENRICH] BuiltWith scrape failed:', e.message); return {} }) : Promise.resolve({}),
-      domain ? scrapeCompanyWebsite(domain).catch((e) => { console.warn('[ENRICH] Website scrape failed:', e.message); return null }) : Promise.resolve(null)
+      domain ? scrapeCompanyWebsite(domain).catch((e) => { console.warn('[ENRICH] Website scrape failed:', e.message); return null }) : Promise.resolve(null),
+      domain ? scrapeLeadership(domain).catch((e) => { console.warn('[ENRICH] Leadership scrape failed:', e.message); return [] }) : Promise.resolve([]),
     ])
 
     if (wikiData) {
@@ -190,10 +191,18 @@ export async function POST(request: Request) {
       if (companyMetadata.description) {
         const foundedMatch = companyMetadata.description.match(/founded\s+(?:in\s+)?(\d{4})/i)
         if (foundedMatch) companyMetadata.founded_year = parseInt(foundedMatch[1])
-        
+
         const hqMatch = companyMetadata.description.match(/headquartered\s+in\s+([^.]+)/i)
         if (hqMatch && !companyMetadata.location) companyMetadata.headquarters = hqMatch[1].trim()
       }
+    }
+
+    // Merge leadership: scraped pages + Wikipedia text extraction (deduplicated)
+    const leadershipFromWiki = extractLeadershipFromWikipedia(wikiData?.extract)
+    const allLeadership = [...new Set([...leadershipFromPages, ...leadershipFromWiki])]
+    if (allLeadership.length > 0) {
+      companyMetadata.leadershipHints = allLeadership
+      console.log(`[ENRICH] Leadership found: ${allLeadership.join(', ')}`)
     }
 
     // Use scraped website data to enrich metadata
