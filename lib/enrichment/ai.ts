@@ -46,6 +46,12 @@ export type AIAnalysisOutput = {
     keyProducts: string[]
     leadershipMentions: string[]
   }
+  visitorProfileAnalysis: {
+    segments: string[]
+    behaviours: string[]
+    attributes: string[]
+    insights: string[]
+  } | null
 }
 
 export async function analyzeAccountData(input: AIAnalysisInput): Promise<AIAnalysisOutput> {
@@ -86,6 +92,12 @@ ${input.preComputedPersona && input.preComputedIntent ? `Our system already comp
 2. **Write a 2-3 sentence AI Summary** that a sales rep can read in 10 seconds to understand this account. Include: who they are, what they likely need, and why now.
 3. **Recommend exactly 3 concrete sales actions.** Be SPECIFIC — don't say "follow up". Say things like "Reach out to VP Engineering about their API integration needs", "Send mortgage industry case study", "Add to enterprise outbound cadence targeting fintech companies".
 4. **Extract a company profile** with industry, estimated size, business model, key products, and any leadership names mentioned in the data.
+5. **Conduct a Visitor Profile Analysis** deriving relevant details specifically based on the visitor behavior (if available). Generate:
+   - **Segments**: Categorize the user (e.g., Enterprise Evaluator, Documentation Reader, Technical Buyer).
+   - **Behaviours**: Key actions inferred from page views and time on site (e.g., Deeply read pricing, Scanned case studies).
+   - **Attributes**: Likely seniority or role based on pages (e.g., C-level, Engineer).
+   - **Insights**: Actionable takeaways about their intent or product interest.
+   *If no visitor behavior data is provided, leave these arrays empty.*
 
 ## OUTPUT FORMAT
 Return a JSON object with EXACTLY these fields (no markdown, no extra text):
@@ -150,7 +162,13 @@ Return a JSON object with EXACTLY these fields (no markdown, no extra text):
         businessModel: jsonResult.companyProfile?.businessModel ?? 'Unknown',
         keyProducts: jsonResult.companyProfile?.keyProducts ?? [],
         leadershipMentions: jsonResult.companyProfile?.leadershipMentions ?? [],
-      }
+      },
+      visitorProfileAnalysis: jsonResult.visitorProfileAnalysis ? {
+        segments: Array.isArray(jsonResult.visitorProfileAnalysis.segments) ? jsonResult.visitorProfileAnalysis.segments : [],
+        behaviours: Array.isArray(jsonResult.visitorProfileAnalysis.behaviours) ? jsonResult.visitorProfileAnalysis.behaviours : [],
+        attributes: Array.isArray(jsonResult.visitorProfileAnalysis.attributes) ? jsonResult.visitorProfileAnalysis.attributes : [],
+        insights: Array.isArray(jsonResult.visitorProfileAnalysis.insights) ? jsonResult.visitorProfileAnalysis.insights : [],
+      } : null
     }
   } catch (error: any) {
     console.error('Error calling AI orchestration via OpenRouter:', error)
@@ -181,7 +199,8 @@ Return a JSON object with EXACTLY these fields (no markdown, no extra text):
         businessModel: 'Unknown',
         keyProducts: [],
         leadershipMentions: input.companyData?.leadershipHints ?? [],
-      }
+      },
+      visitorProfileAnalysis: null
     }
   }
 }

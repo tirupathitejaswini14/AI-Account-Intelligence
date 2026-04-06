@@ -9,6 +9,7 @@ import {
 import { cn } from '@/lib/utils'
 import { TECH_CATEGORIES } from '@/lib/enrichment/techstack'
 import Link from 'next/link'
+import { ReactNode } from 'react'
 
 interface AccountCardProps {
   account: EnrichedAccount
@@ -75,6 +76,7 @@ export function AccountCard({ account, className }: AccountCardProps) {
   } = latestEnrichment
 
   const companyProfile  = raw_visitor_data?._meta?.companyProfile
+  const visitorProfile  = raw_visitor_data?._meta?.visitorProfileAnalysis
   const intentSignals: string[] = raw_visitor_data?._meta?.preComputedIntent?.signals ?? []
   const pagesVisited: string[]  = raw_visitor_data?.pages_visited ?? []
 
@@ -262,6 +264,51 @@ export function AccountCard({ account, className }: AccountCardProps) {
           )}
         </div>
       </div>
+
+      {/* ── Visitor Profile Analysis ──────────────────────────── */}
+      {visitorProfile && (
+        <div className="border-t border-border/60 bg-muted/10">
+          <div className="px-5 py-4 border-b border-border/60">
+             <div className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
+               <Users className="h-3.5 w-3.5" /> Visitor Profile Analysis
+             </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-border/60">
+            <div className="p-4">
+              <div className="text-[10px] font-bold text-muted-foreground mb-2 flex items-center gap-1"><Tag className="h-3 w-3" /> Segments</div>
+              {visitorProfile.segments?.length > 0 ? (
+                <ul className="space-y-1.5 list-disc pl-3">
+                  {visitorProfile.segments.map((s: string, i: number) => <li key={i} className="text-xs text-foreground/80">{s}</li>)}
+                </ul>
+              ) : <div className="text-xs text-muted-foreground">None identified</div>}
+            </div>
+            <div className="p-4">
+              <div className="text-[10px] font-bold text-muted-foreground mb-2 flex items-center gap-1"><Zap className="h-3 w-3" /> Behaviours</div>
+              {visitorProfile.behaviours?.length > 0 ? (
+                <ul className="space-y-1.5 list-disc pl-3">
+                  {visitorProfile.behaviours.map((b: string, i: number) => <li key={i} className="text-xs text-foreground/80">{b}</li>)}
+                </ul>
+              ) : <div className="text-xs text-muted-foreground">No specific behaviour</div>}
+            </div>
+            <div className="p-4">
+              <div className="text-[10px] font-bold text-muted-foreground mb-2 flex items-center gap-1"><Briefcase className="h-3 w-3" /> Attributes</div>
+              {visitorProfile.attributes?.length > 0 ? (
+                <ul className="space-y-1.5 list-disc pl-3">
+                  {visitorProfile.attributes.map((a: string, i: number) => <li key={i} className="text-xs text-foreground/80">{a}</li>)}
+                </ul>
+              ) : <div className="text-xs text-muted-foreground">Unknown attributes</div>}
+            </div>
+            <div className="p-4">
+              <div className="text-[10px] font-bold text-muted-foreground mb-2 flex items-center gap-1"><Sparkles className="h-3 w-3" /> Insights</div>
+              {visitorProfile.insights?.length > 0 ? (
+                <ul className="space-y-1.5 list-disc pl-3">
+                  {visitorProfile.insights.map((ins: string, i: number) => <li key={i} className="text-xs text-foreground/80 leading-tight">{ins}</li>)}
+                </ul>
+              ) : <div className="text-xs text-muted-foreground">No insights available</div>}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Sales Playbook + Intent Signals ──────────────────── */}
       <div className="border-t border-border/60 grid grid-cols-1 md:grid-cols-2">
