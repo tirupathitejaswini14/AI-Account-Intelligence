@@ -67,18 +67,22 @@ export async function POST(request: Request) {
       },
     }
 
-    // Fire enrichment in background — return 200 immediately so the browser isn't blocked
+    // Fire enrichment — we MUST await this on Vercel (Serverless Functions drop un-awaited promises)
     const host = request.headers.get('host') || 'localhost:3000'
     const protocol = host.includes('localhost') ? 'http' : 'https'
 
-    fetch(`${protocol}://${host}/api/enrich`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-internal-user-id': userId as string,
-      },
-      body: JSON.stringify(enrichPayload),
-    }).catch(err => console.warn('[TRACK] Background enrichment error:', err.message))
+    try {
+      await fetch(`${protocol}://${host}/api/enrich`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-internal-user-id': userId as string,
+        },
+        body: JSON.stringify(enrichPayload),
+      });
+    } catch (err: any) {
+      console.warn('[TRACK] Enrichment error:', err.message);
+    }
 
     return new NextResponse(JSON.stringify({ ok: true }), {
       status: 200,
