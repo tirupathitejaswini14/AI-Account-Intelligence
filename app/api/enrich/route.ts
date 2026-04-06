@@ -315,10 +315,18 @@ export async function POST(request: Request) {
       updated_at: new Date().toISOString(),
     }
 
-    // If authenticated, persist to Supabase
+    // If authenticated (or called via internal API track), persist to Supabase
     if (userId) {
       try {
-        const { data: accountData, error: accountError } = await supabase
+        // Create an admin client because server-to-server calls don't have auth cookies
+        // We MUST bypass RLS to save the trackings to the user's account
+        const { createClient: createAdminClient } = require('@supabase/supabase-js')
+        const adminSupabase = createAdminClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.SUPABASE_SERVICE_ROLE_KEY!
+        )
+
+        const { data: accountData, error: accountError } = await adminSupabase
           .from('accounts')
           .insert({
             user_id: userId,
@@ -338,7 +346,7 @@ export async function POST(request: Request) {
           accountResult.id = accountData.id
           enrichmentResult.account_id = accountData.id
 
-          const { data: enrichmentData, error: enrichmentError } = await supabase
+          const { data: enrichmentData, error: enrichmentError } = await adminSupabase
             .from('enrichments')
             .insert({
               account_id: accountData.id,
