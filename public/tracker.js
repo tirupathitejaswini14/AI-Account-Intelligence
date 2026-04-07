@@ -111,20 +111,44 @@
     }
   }
 
+  // ─── Geolocation Opt-In ──────────────────────────────────────────────────
+  var exactLocation = null;
+  if ('geolocation' in navigator) {
+    navigator.geolocation.getCurrentPosition(
+      function (pos) {
+        exactLocation = {
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude
+        };
+      },
+      function (err) {
+        // User denied or error occurred
+        console.warn('[AccountIQ] Geolocation access denied or unavailable.');
+      }
+    );
+  }
+
   // ─── Send beacon ─────────────────────────────────────────────────────────
   function send() {
     if (sent) return;
     sent = true;
 
     var dwellSeconds = Math.round((Date.now() - startTime) / 1000);
-    var payload = JSON.stringify({
+    var payloadObj = {
       api_key:             apiKey,
       visitor_id:          sessionId,
       pages_visited:       pages,
       dwell_time_seconds:  dwellSeconds,
       visits_this_week:    weeklyVisits,
       referral_source:     referralSource,
-    });
+    };
+
+    if (exactLocation) {
+      payloadObj.location_lat = exactLocation.lat;
+      payloadObj.location_lng = exactLocation.lng;
+    }
+
+    var payload = JSON.stringify(payloadObj);
 
     // sendBeacon is the most reliable way to send data on page unload.
     // We pass a plain string (text/plain) to avoid CORS preflight.
@@ -150,14 +174,21 @@
     if (!sent) {
       sent = false; // allow re-send on exit too
       var dwellSeconds = Math.round((Date.now() - startTime) / 1000);
-      var payload = JSON.stringify({
+      var payloadObj = {
         api_key:            apiKey,
         visitor_id:         sessionId,
         pages_visited:      pages,
         dwell_time_seconds: dwellSeconds,
         visits_this_week:   weeklyVisits,
         referral_source:    referralSource,
-      });
+      };
+      
+      if (exactLocation) {
+        payloadObj.location_lat = exactLocation.lat;
+        payloadObj.location_lng = exactLocation.lng;
+      }
+      
+      var payload = JSON.stringify(payloadObj);
       try { navigator.sendBeacon && navigator.sendBeacon(ENDPOINT, payload); } catch (e) {}
     }
   }, 120000);

@@ -28,7 +28,7 @@ export async function POST(request: Request) {
       })
     }
 
-    const { api_key, visitor_id, pages_visited, dwell_time_seconds, visits_this_week, referral_source } = body
+    const { api_key, visitor_id, pages_visited, dwell_time_seconds, visits_this_week, referral_source, location_lat, location_lng } = body
 
     if (!api_key || typeof api_key !== 'string') {
       return new NextResponse(JSON.stringify({ error: 'api_key is required' }), {
@@ -64,6 +64,8 @@ export async function POST(request: Request) {
         dwell_time_seconds: Math.max(0, Number(dwell_time_seconds) || 0),
         visits_this_week: Math.max(1, Number(visits_this_week) || 1),
         referral_source: typeof referral_source === 'string' ? referral_source : 'direct',
+        location_lat: location_lat,
+        location_lng: location_lng,
       },
     }
 
