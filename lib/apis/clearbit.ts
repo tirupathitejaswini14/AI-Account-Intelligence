@@ -1,7 +1,7 @@
 export async function getCompanyLogo(domain: string) {
   if (!domain) return null
   
-  // Clearbit Logo API is free and doesn't require authentication for logos
+  // Logo.dev API — high-quality company logos
   const cleanDomain = domain.replace(/^(?:https?:\/\/)?(?:www\.)?/i, '').split('/')[0]
-  return `https://logo.clearbit.com/${cleanDomain}`
+  return `https://img.logo.dev/${cleanDomain}?token=pk_KrI8kf_6TRSChTxR4HOomA&size=128&format=png`
 }
