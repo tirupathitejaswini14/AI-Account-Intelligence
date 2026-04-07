@@ -69,31 +69,19 @@ export async function POST(request: Request) {
       // Clean org name: remove AS numbers like "AS14618 Amazon.com, Inc."
       orgName = orgName.replace(/^AS\d+\s+/i, '').trim()
       
-      // Special case: If testing locally or from a private IP, mock a real company
-      // so the user can test the intelligence pipeline without a corporate VPN.
-      const isLocal = ipData?.query === '127.0.0.1' || ipData?.query === '::1' || 
-                     /^192\.168\.|^10\.|^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(ipData?.query || '') ||
-                     !ipData;
-
-      if (isLocal) {
-        orgName = 'Stripe'
-        domain = 'stripe.com'
-        companyMetadata.note = 'MOCK LOCAHOST DATA: Showing Stripe as fallback for local testing'
-      }
-
       const isISP = COMMON_ISPS.some(isp => orgName.toLowerCase().includes(isp))
       
       if (orgName && !isISP) {
         companyName = orgName
-        companyMetadata.location = isLocal ? 'San Francisco, CA, United States' : [ipData.city, ipData.regionName, ipData.country].filter(Boolean).join(', ')
+        companyMetadata.location = [ipData?.city, ipData?.regionName, ipData?.country].filter(Boolean).join(', ')
         companyMetadata.ip_resolved = true
       } else {
-        // Graceful fallback for consumer IPs — still process with what we have
-        companyName = 'Unknown Company'
+        // Fallback for consumer IPs — show the actual ISP/IP instead of "Unknown"
+        companyName = orgName ? `${orgName} (ISP)` : `Visitor IP: ${input.ip_address}`
         companyMetadata.is_unknown = true
         companyMetadata.ip_org = orgName || 'Unresolvable'
         companyMetadata.location = ipData ? [ipData.city, ipData.regionName, ipData.country].filter(Boolean).join(', ') : 'Unknown'
-        companyMetadata.note = 'IP belongs to a consumer ISP or could not be resolved to a B2B entity. Enrichment based on visitor behavior only.'
+        companyMetadata.note = `IP: ${input.ip_address} belongs to a consumer ISP.`
       }
 
       // Log visitor if authenticated
