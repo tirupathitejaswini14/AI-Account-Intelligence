@@ -28,6 +28,13 @@ export default function RootLayout({
             </div>
           </div>
         </main>
+
+        {/* AccountIQ Visitor Tracker */}
+        <script
+          src="http://localhost:3000/tracker.js"
+          data-api-key="aiq_d12da26b060d8abdcc53b5506a0770dc7bb61ad16193720b"
+          async
+        />
       </body>
     </html>
   )

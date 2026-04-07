@@ -22,6 +22,10 @@ export function Navigation() {
     { href: '/setup', label: 'Setup', icon: Code2 },
   ]
 
+  // Hide sidebar on public pages
+  const PUBLIC_PATHS = ['/home', '/about', '/contact', '/login']
+  if (PUBLIC_PATHS.includes(pathname)) return null
+
   return (
     <aside className="w-64 shrink-0 h-screen sticky top-0 flex flex-col p-4">
       {/* Brand Logo */}
