@@ -69,18 +69,35 @@ export async function POST(request: Request) {
       // Clean org name: remove AS numbers like "AS14618 Amazon.com, Inc."
       orgName = orgName.replace(/^AS\d+\s+/i, '').trim()
       
+      // Attempt Reverse Geocoding if HTML5 Location is provided
+      let html5Location = ''
+      if (input.location_lat && input.location_lng) {
+        try {
+          const geoRes = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${input.location_lat}&lon=${input.location_lng}`, { headers: { 'User-Agent': 'AccountIQ AI' } })
+          if (geoRes.ok) {
+            const geoData = await geoRes.json()
+            if (geoData && geoData.address) {
+              const city = geoData.address.city || geoData.address.town || geoData.address.county || geoData.address.suburb
+              html5Location = [city, geoData.address.state, geoData.address.country].filter(Boolean).join(', ')
+            }
+          }
+        } catch (e) {
+          console.warn('[ENRICH] Reverse geocoding failed:', e)
+        }
+      }
+
       const isISP = COMMON_ISPS.some(isp => orgName.toLowerCase().includes(isp))
       
       if (orgName && !isISP) {
         companyName = orgName
-        companyMetadata.location = [ipData?.city, ipData?.regionName, ipData?.country].filter(Boolean).join(', ')
+        companyMetadata.location = html5Location || [ipData?.city, ipData?.regionName, ipData?.country].filter(Boolean).join(', ')
         companyMetadata.ip_resolved = true
       } else {
         // Fallback for consumer IPs — show the actual ISP/IP instead of "Unknown"
         companyName = orgName ? `${orgName} (ISP)` : `Visitor IP: ${input.ip_address}`
         companyMetadata.is_unknown = true
         companyMetadata.ip_org = orgName || 'Unresolvable'
-        companyMetadata.location = ipData ? [ipData.city, ipData.regionName, ipData.country].filter(Boolean).join(', ') : 'Unknown'
+        companyMetadata.location = html5Location || (ipData && ipData.city ? [ipData.city, ipData.regionName, ipData.country].filter(Boolean).join(', ') : 'Unknown')
         companyMetadata.note = `IP: ${input.ip_address} belongs to a consumer ISP.`
       }
 
