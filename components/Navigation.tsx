@@ -13,7 +13,7 @@ export function Navigation() {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut()
-    router.refresh()
+    router.push('/login')
   }
 
   const navLinks = [

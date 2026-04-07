@@ -21,13 +21,18 @@ export default function LoginPage() {
 
     try {
       if (isSignUp) {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
         })
         if (error) throw error
+        
+        if (!data.session) {
+          setError("Confirmation email sent! Please check your inbox (or spam) to verify your account.")
+          return
+        }
+
         router.push('/dashboard')
-        router.refresh()
       } else {
         const { error } = await supabase.auth.signInWithPassword({
           email,
