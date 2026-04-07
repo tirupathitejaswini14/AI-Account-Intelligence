@@ -4,39 +4,39 @@
 
 @layer base {
   :root {
-    --background: 240 10% 4%;
-    --foreground: 0 0% 98%;
+    --background: 210 20% 98%;
+    --foreground: 220 30% 15%;
 
-    --card: 240 10% 6%;
-    --card-foreground: 0 0% 98%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 30% 15%;
 
-    --popover: 240 10% 6%;
-    --popover-foreground: 0 0% 98%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 30% 15%;
 
-    --primary: 190 90% 50%; /* Electric Cyan */
-    --primary-foreground: 240 10% 4%;
+    --primary: 236 90% 64%; /* Vibrant Royal Blue */
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 240 10% 12%;
-    --secondary-foreground: 0 0% 98%;
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 220 30% 15%;
 
-    --muted: 240 10% 12%;
-    --muted-foreground: 240 5% 65%;
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 15% 45%;
 
-    --accent: 270 90% 60%; /* Deep Magenta/Purple */
-    --accent-foreground: 0 0% 98%;
+    --accent: 280 80% 60%; /* Bright Violet */
+    --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive: 350 84% 60%;
+    --destructive-foreground: 0 0% 100%;
 
-    --success: 142 70% 45%;
-    --success-foreground: 0 0% 98%;
+    --success: 152 70% 38%;
+    --success-foreground: 0 0% 100%;
 
-    --warning: 38 92% 50%;
-    --warning-foreground: 240 10% 4%;
+    --warning: 42 96% 55%;
+    --warning-foreground: 220 30% 15%;
 
-    --border: 240 10% 16%;
-    --input: 240 10% 16%;
-    --ring: 190 90% 50%;
+    --border: 220 10% 90%;
+    --input: 220 10% 90%;
+    --ring: 236 90% 64%;
 
     --radius: 1rem;
   }
@@ -54,38 +54,38 @@
 
 @layer utilities {
   .glass {
-    @apply bg-background/40 backdrop-blur-3xl border border-white/10 shadow-[inner_0_1px_0_rgba(255,255,255,0.05)];
+    @apply bg-white/70 backdrop-blur-2xl border border-white/50 shadow-[0_4px_30px_rgba(0,0,0,0.02)];
   }
   .glass-card {
-    @apply bg-card/40 backdrop-blur-2xl border border-white/[0.08] shadow-[0_8px_30px_rgb(0,0,0,0.4)] transition-all duration-300;
+    @apply bg-white/80 backdrop-blur-xl border border-white/60 shadow-[0_8px_30px_rgba(0,0,0,0.04)] transition-all duration-300;
   }
   .glass-card:hover {
-    @apply border-white/20 shadow-[0_8px_30px_rgb(0,0,0,0.6)] bg-card/60;
+    @apply border-white/80 shadow-[0_12px_40px_rgba(0,0,0,0.08)] bg-white/95;
   }
 
   .gradient-primary {
-    @apply bg-gradient-to-br from-[hsl(190,90%,50%)] to-[hsl(270,90%,60%)];
+    @apply bg-gradient-to-br from-[hsl(236,90%,64%)] to-[hsl(280,80%,60%)];
   }
   
   .gradient-text {
-    @apply bg-gradient-to-br from-[hsl(0,0%,100%)] via-[hsl(0,0%,90%)] to-[hsl(240,5%,65%)] bg-clip-text text-transparent;
+    @apply bg-gradient-to-br from-[hsl(220,30%,15%)] via-[hsl(220,30%,35%)] to-[hsl(220,20%,50%)] bg-clip-text text-transparent;
   }
   
   .gradient-text-primary {
-    @apply bg-gradient-to-r from-[hsl(190,90%,50%)] to-[hsl(270,90%,60%)] bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-[hsl(236,90%,64%)] to-[hsl(280,80%,60%)] bg-clip-text text-transparent;
   }
 
   .intent-glow-high {
-    box-shadow: 0 0 25px hsl(0, 84%, 60%, 0.3), inset 0 0 10px hsl(0, 84%, 60%, 0.1);
-    border-color: hsl(0, 84%, 60%, 0.4);
+    box-shadow: 0 0 25px hsl(350, 84%, 60%, 0.15), inset 0 0 10px hsl(350, 84%, 60%, 0.05);
+    border-color: hsl(350, 84%, 60%, 0.2);
   }
   .intent-glow-med {
-    box-shadow: 0 0 25px hsl(38, 92%, 50%, 0.2), inset 0 0 10px hsl(38, 92%, 50%, 0.1);
-    border-color: hsl(38, 92%, 50%, 0.3);
+    box-shadow: 0 0 25px hsl(42, 96%, 55%, 0.15), inset 0 0 10px hsl(42, 96%, 55%, 0.05);
+    border-color: hsl(42, 96%, 55%, 0.2);
   }
   .intent-glow-low {
-    box-shadow: 0 0 25px hsl(190, 90%, 50%, 0.2), inset 0 0 10px hsl(190, 90%, 50%, 0.1);
-    border-color: hsl(190, 90%, 50%, 0.3);
+    box-shadow: 0 0 25px hsl(236, 90%, 64%, 0.15), inset 0 0 10px hsl(236, 90%, 64%, 0.05);
+    border-color: hsl(236, 90%, 64%, 0.2);
   }
 }
 

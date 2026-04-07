@@ -24,7 +24,7 @@ export function Navigation() {
 
   return (
     <div className="w-full flex justify-center sticky top-4 z-50 px-4">
-      <nav className="glass border border-white/10 rounded-2xl shadow-xl shadow-black/20 w-full max-w-5xl">
+      <nav className="glass border border-black/5 rounded-2xl shadow-xl shadow-primary/5 w-full max-w-5xl">
         <div className="flex h-14 items-center px-4 md:px-6">
           <Link href="/" className="flex items-center gap-3 font-bold text-lg mr-8 group">
             <div className="gradient-primary p-2 rounded-xl shadow-[0_0_15px_rgba(0,240,255,0.4)] group-hover:shadow-[0_0_25px_rgba(0,240,255,0.6)] transition-all">
@@ -40,8 +40,8 @@ export function Navigation() {
                 className={cn(
                   "flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200",
                   pathname === href
-                    ? "bg-primary/10 text-primary border border-primary/20 backdrop-blur-md shadow-[inset_0_0_20px_rgba(0,240,255,0.1)]"
-                    : "text-muted-foreground hover:text-foreground hover:bg-white/5 border border-transparent"
+                    ? "bg-primary/10 text-primary border border-primary/20 backdrop-blur-md shadow-[inset_0_0_20px_rgba(90,100,255,0.05)]"
+                    : "text-muted-foreground hover:text-foreground hover:bg-black/5 border border-transparent"
                 )}
               >
                 <Icon className="h-4 w-4" />

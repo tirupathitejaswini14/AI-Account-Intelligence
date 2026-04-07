@@ -70,7 +70,7 @@ export default function LoginPage() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="flex h-11 w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm transition-colors focus:border-primary focus:bg-white/10 focus:outline-none"
+              className="flex h-11 w-full rounded-xl border border-border/80 bg-white/50 px-4 py-2 text-sm transition-colors focus:border-primary focus:bg-white focus:outline-none"
               placeholder="name@company.com"
             />
           </div>
@@ -81,7 +81,7 @@ export default function LoginPage() {
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="flex h-11 w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm transition-colors focus:border-primary focus:bg-white/10 focus:outline-none"
+              className="flex h-11 w-full rounded-xl border border-border/80 bg-white/50 px-4 py-2 text-sm transition-colors focus:border-primary focus:bg-white focus:outline-none"
               placeholder="••••••••"
             />
           </div>

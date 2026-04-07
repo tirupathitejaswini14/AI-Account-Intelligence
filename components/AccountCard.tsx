@@ -267,13 +267,13 @@ export function AccountCard({ account, className }: AccountCardProps) {
 
       {/* ── Visitor Profile Analysis ──────────────────────────── */}
       {visitorProfile && (
-        <div className="border-t border-white/10 bg-muted/10">
-          <div className="px-5 py-4 border-b border-white/10">
+        <div className="border-t border-border/60 bg-muted/30">
+          <div className="px-5 py-4 border-b border-border/60">
              <div className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
                <Users className="h-3.5 w-3.5" /> Visitor Profile Analysis
              </div>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-white/10">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-border/60">
             <div className="p-4">
               <div className="text-[10px] font-bold text-muted-foreground mb-2 flex items-center gap-1"><Tag className="h-3 w-3" /> Segments</div>
               {visitorProfile.segments?.length > 0 ? (
@@ -311,8 +311,8 @@ export function AccountCard({ account, className }: AccountCardProps) {
       )}
 
       {/* ── Sales Playbook + Intent Signals ──────────────────── */}
-      <div className="border-t border-white/10 grid grid-cols-1 md:grid-cols-2">
-        <div className="p-5 border-b md:border-b-0 md:border-r border-white/10">
+      <div className="border-t border-border/60 grid grid-cols-1 md:grid-cols-2">
+        <div className="p-5 border-b md:border-b-0 md:border-r border-border/60">
           <div className="text-[11px] font-bold uppercase tracking-widest text-primary mb-3 flex items-center gap-1.5">
             <Zap className="h-3.5 w-3.5" /> Recommended Sales Actions
           </div>
@@ -360,10 +360,12 @@ export function AccountCard({ account, className }: AccountCardProps) {
       </div>
 
       {/* ── Business Signals + Tech Stack + Leadership ────────── */}
-      <div className="border-t border-white/10 grid grid-cols-1 md:grid-cols-3">
-        {/* Business signals */}
-        <div className="p-5 border-b md:border-b-0 md:border-r border-white/10">
-          <div className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-3 flex items-center gap-1.5">
+      <div className={`bg-white rounded-2xl overflow-hidden border border-slate-200 ${className}`}>
+        {/* Top Banner section */}
+        <div className="p-6 pb-5 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 relative overflow-hidden">
+          {/* subtle highlight at top */}
+          <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-blue-300 to-transparent"></div>
+          <div className="text-[11px] font-bold uppercase tracking-widest text-slate-400 mb-3 flex items-center gap-1.5">
             <TrendingUp className="h-3.5 w-3.5" /> Business Signals
           </div>
           {business_signals && business_signals.length > 0 ? (
@@ -385,7 +387,7 @@ export function AccountCard({ account, className }: AccountCardProps) {
         </div>
 
         {/* Tech stack */}
-        <div className="p-5 border-b md:border-b-0 md:border-r border-white/10">
+        <div className="p-5 border-b md:border-b-0 md:border-r border-border/60">
           <div className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-3 flex items-center gap-1.5">
             <Shield className="h-3.5 w-3.5" /> Technology Stack
           </div>
