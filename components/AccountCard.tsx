@@ -109,11 +109,21 @@ export function AccountCard({ account, className }: AccountCardProps) {
           
           <h2 className="text-2xl font-black text-slate-900 mb-1">{account.name || domain || 'Unknown Company'}</h2>
           
-          {domain && (
-            <a href={`https://${domain}`} target="_blank" className="text-sm font-medium text-primary flex items-center gap-1 hover:underline mb-4 w-fit">
-              <Globe className="h-3.5 w-3.5" /> {domain}
-            </a>
-          )}
+          <div className="flex flex-wrap items-center gap-3 mb-4">
+            {domain && (
+              <a href={`https://${domain}`} target="_blank" className="text-sm font-medium text-primary flex items-center gap-1 hover:underline">
+                <Globe className="h-3.5 w-3.5" /> {domain}
+              </a>
+            )}
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 bg-slate-200/50 px-2 py-1 rounded-md border border-slate-200">
+              <Calendar className="h-3 w-3" />
+              {new Date(account.created_at).toLocaleString('en-US', { 
+                month: 'short', day: 'numeric', 
+                hour: 'numeric', minute: '2-digit', 
+                hour12: true 
+              })}
+            </div>
+          </div>
           
           <div className="flex flex-wrap gap-2 mb-8">
              {intent_stage && <StageBadge stage={intent_stage} />}
