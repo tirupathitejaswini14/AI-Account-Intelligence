@@ -16,12 +16,17 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${outfit.className} min-h-screen bg-background text-foreground flex flex-col antialiased selection:bg-primary/30 selection:text-primary`}>
-        {/* Subtle mesh positive background */}
-        <div className="fixed inset-0 z-[-1] bg-white bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(120,119,255,0.15),rgba(255,255,255,0))]"></div>
+      <body className={`${outfit.className} min-h-screen bg-slate-50 text-foreground flex antialiased selection:bg-primary/30 selection:text-primary`}>
+        {/* Sidebar Navigation */}
         <Navigation />
-        <main className="flex-1 max-w-7xl mx-auto w-full p-4 md:p-8 relative z-10">
-          {children}
+        
+        {/* Main Application Content Pane */}
+        <main className="flex-1 flex flex-col h-screen overflow-hidden py-4 pr-4">
+          <div className="flex-1 bg-white rounded-[2rem] border border-slate-200 shadow-sm overflow-y-auto w-full relative h-full">
+            <div className="max-w-7xl mx-auto w-full p-6 md:p-10 lg:p-12 relative z-10">
+              {children}
+            </div>
+          </div>
         </main>
       </body>
     </html>

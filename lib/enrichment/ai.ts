@@ -54,6 +54,98 @@ export type AIAnalysisOutput = {
   } | null
 }
 
+// Deterministic fallback: generates visitor profile from pre-computed data when LLM returns null
+function generateFallbackVisitorProfile(input: AIAnalysisInput): AIAnalysisOutput['visitorProfileAnalysis'] {
+  const pages: string[] = input.visitorData?.pages_visited ?? []
+  if (pages.length === 0 && !input.preComputedPersona && !input.preComputedIntent) return null
+
+  const segments: string[] = []
+  const behaviours: string[] = []
+  const attributes: string[] = []
+  const insights: string[] = []
+
+  // Derive segments from persona
+  if (input.preComputedPersona?.persona) {
+    segments.push(input.preComputedPersona.persona)
+  }
+
+  // Derive segments from page patterns
+  const hasHighIntent = pages.some(p => ['/pricing', '/demo', '/enterprise', '/contact', '/get-started'].includes(p))
+  const hasTechnical = pages.some(p => ['/docs', '/api', '/security', '/compliance'].includes(p))
+  const hasResearch = pages.some(p => ['/blog', '/case-studies', '/about'].includes(p))
+
+  if (hasHighIntent) segments.push('Active Evaluator')
+  if (hasTechnical) segments.push('Technical Buyer')
+  if (hasResearch) segments.push('Research Phase Visitor')
+  if (pages.includes('/pricing') && pages.includes('/enterprise')) segments.push('Enterprise Prospect')
+
+  // Derive behaviours from pages
+  if (pages.includes('/pricing')) behaviours.push('Reviewed pricing page')
+  if (pages.includes('/demo')) behaviours.push('Requested product demo')
+  if (pages.includes('/enterprise')) behaviours.push('Explored enterprise tier')
+  if (pages.includes('/case-studies')) behaviours.push('Read customer case studies')
+  if (pages.includes('/docs') || pages.includes('/api')) behaviours.push('Explored technical documentation')
+  if (pages.includes('/security') || pages.includes('/compliance')) behaviours.push('Evaluated security & compliance')
+  if (pages.includes('/blog')) behaviours.push('Browsed blog content')
+  if (pages.includes('/about')) behaviours.push('Visited about/company page')
+  if (pages.includes('/contact') || pages.includes('/get-started')) behaviours.push('Initiated contact or sign-up')
+
+  const dwellTime = input.visitorData?.dwell_time_seconds ?? 0
+  if (dwellTime > 180) behaviours.push(`Deep engagement — ${Math.floor(dwellTime / 60)}+ minutes on site`)
+  else if (dwellTime > 60) behaviours.push(`Moderate engagement — ${Math.floor(dwellTime / 60)}m ${dwellTime % 60}s on site`)
+
+  const visits = input.visitorData?.visits_this_week ?? 0
+  if (visits >= 3) behaviours.push(`Repeat visitor — ${visits} visits this week`)
+
+  // Derive attributes from persona + pages
+  if (input.preComputedPersona?.persona) {
+    const p = input.preComputedPersona.persona.toLowerCase()
+    if (p.includes('executive') || p.includes('c-level')) attributes.push('Likely C-level executive')
+    else if (p.includes('manager') || p.includes('vp')) attributes.push('Likely VP or Manager level')
+    else if (p.includes('engineer') || p.includes('developer') || p.includes('technical')) attributes.push('Technical decision maker')
+    else attributes.push(`Likely role: ${input.preComputedPersona.persona}`)
+    
+    if (input.preComputedPersona.confidence >= 70) attributes.push('High-confidence persona match')
+  }
+  if (hasTechnical) attributes.push('Technical evaluator profile')
+  if (hasHighIntent && !hasTechnical) attributes.push('Business decision maker profile')
+
+  const ref = input.visitorData?.referral_source
+  if (ref === 'linkedin') attributes.push('Sourced from LinkedIn')
+  else if (ref === 'google') attributes.push('Found via organic search')
+  else if (ref === 'direct') attributes.push('Direct/bookmark visitor — likely returning')
+
+  // Generate insights from intent data
+  if (input.preComputedIntent) {
+    const score = input.preComputedIntent.score
+    const stage = input.preComputedIntent.stage
+    if (score >= 7) insights.push(`High purchase intent (${score}/10) — prioritize for immediate outreach`)
+    else if (score >= 4) insights.push(`Moderate intent (${score}/10) — nurture with targeted content`)
+    else insights.push(`Early-stage interest (${score}/10) — add to awareness campaigns`)
+
+    if (stage === 'Decision') insights.push('Visitor is in Decision stage — ready for sales conversation')
+    else if (stage === 'Evaluation') insights.push('Visitor is in Evaluation stage — share comparison content and case studies')
+    else insights.push('Visitor is in Awareness stage — provide educational content')
+  }
+
+  if (pages.includes('/pricing') && pages.includes('/case-studies')) {
+    insights.push('Strong buying signal: pricing + case studies combo indicates ROI evaluation')
+  }
+  if (pages.includes('/pricing') && pages.includes('/enterprise')) {
+    insights.push('Enterprise deal potential: explored both pricing and enterprise tiers')
+  }
+  if (visits >= 3 && hasHighIntent) {
+    insights.push('Highly engaged repeat visitor on high-intent pages — likely close to purchase')
+  }
+
+  return {
+    segments: Array.from(new Set(segments)),
+    behaviours: Array.from(new Set(behaviours)),
+    attributes: Array.from(new Set(attributes)),
+    insights: Array.from(new Set(insights)),
+  }
+}
+
 export async function analyzeAccountData(input: AIAnalysisInput): Promise<AIAnalysisOutput> {
   try {
     const prompt = `You are an expert B2B sales intelligence analyst at a top-tier ABM platform. Analyze the following account data and return a comprehensive, structured JSON intelligence profile.
@@ -116,6 +208,12 @@ Return a JSON object with EXACTLY these fields (no markdown, no extra text):
     "businessModel": string (e.g. "B2B SaaS", "Marketplace"),
     "keyProducts": [string, ...],
     "leadershipMentions": [string, ...]
+  },
+  "visitorProfileAnalysis": {
+    "segments": [string, ...] (e.g. "Enterprise Evaluator", "Technical Buyer", "Pricing Researcher"),
+    "behaviours": [string, ...] (e.g. "Deeply reviewed pricing page", "Compared enterprise tiers"),
+    "attributes": [string, ...] (e.g. "Likely C-level or VP", "Technical decision maker"),
+    "insights": [string, ...] (e.g. "High purchase intent based on repeated pricing visits", "Interested in enterprise features")
   }
 }`
 
@@ -123,7 +221,7 @@ Return a JSON object with EXACTLY these fields (no markdown, no extra text):
       model: 'meta-llama/llama-3.3-70b-instruct:free',
       messages: [{ role: 'user', content: prompt }],
       temperature: 0.1,
-      max_tokens: 1500,
+      max_tokens: 2500,
     })
 
     const rawResponseText = response.choices[0]?.message?.content || '{}'
@@ -168,7 +266,7 @@ Return a JSON object with EXACTLY these fields (no markdown, no extra text):
         behaviours: Array.isArray(jsonResult.visitorProfileAnalysis.behaviours) ? jsonResult.visitorProfileAnalysis.behaviours : [],
         attributes: Array.isArray(jsonResult.visitorProfileAnalysis.attributes) ? jsonResult.visitorProfileAnalysis.attributes : [],
         insights: Array.isArray(jsonResult.visitorProfileAnalysis.insights) ? jsonResult.visitorProfileAnalysis.insights : [],
-      } : null
+      } : generateFallbackVisitorProfile(input)
     }
   } catch (error: any) {
     console.error('Error calling AI orchestration via OpenRouter:', error)
@@ -200,7 +298,7 @@ Return a JSON object with EXACTLY these fields (no markdown, no extra text):
         keyProducts: [],
         leadershipMentions: input.companyData?.leadershipHints ?? [],
       },
-      visitorProfileAnalysis: null
+      visitorProfileAnalysis: generateFallbackVisitorProfile(input)
     }
   }
 }

@@ -83,16 +83,13 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="space-y-6 animate-fade-in relative">
-      <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-[120px] -z-10 pointer-events-none"></div>
-      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-accent/10 rounded-full blur-[120px] -z-10 pointer-events-none"></div>
-      
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-10">
+    <div className="space-y-8 animate-fade-in">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-100 pb-6">
         <div>
-          <h1 className="text-4xl font-extrabold tracking-tight mb-2 flex items-center gap-3">
-            <span className="gradient-text-primary">Intelligence</span> Dashboard
+          <h1 className="text-3xl font-extrabold tracking-tight mb-2 text-slate-800">
+            Intelligence Feed
           </h1>
-          <p className="text-muted-foreground">Track enriched visitor signals and target account intel.</p>
+          <p className="text-slate-500">Track enriched visitor signals and target account intel.</p>
         </div>
         <Link 
           href="/enrich"
@@ -103,51 +100,37 @@ export default function DashboardPage() {
         </Link>
       </div>
 
-      {/* Stats Cards */}
+      {/* Stats Bento Grid */}
       {accounts.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 stagger-children relative z-10">
-          <div className="glass-card rounded-2xl p-5">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-primary/10">
-                <Building2 className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">{stats.total}</p>
-                <p className="text-xs text-muted-foreground font-medium">Total Accounts</p>
-              </div>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 relative z-10 w-full">
+          <div className="md:col-span-2 bg-slate-50/80 rounded-[2rem] p-8 border border-slate-200 flex flex-col justify-between shadow-sm">
+            <div className="p-4 w-fit rounded-2xl bg-blue-100/50 mb-6">
+              <Users className="h-6 w-6 text-blue-600" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-slate-500 uppercase tracking-widest mb-1.5">Total Visitors Tracked</p>
+              <h3 className="text-5xl font-black text-slate-800">{stats.total}</h3>
             </div>
           </div>
-          <div className="glass-card rounded-2xl p-5">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-amber-500/10">
-                <TrendingUp className="h-5 w-5 text-amber-600" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">{stats.avgIntent}<span className="text-sm text-muted-foreground font-normal">/10</span></p>
-                <p className="text-xs text-muted-foreground font-medium">Avg Intent Score</p>
-              </div>
+          
+          <div className="bg-slate-50/80 rounded-[2rem] p-8 border border-slate-200 flex flex-col justify-between shadow-sm">
+            <div className="p-4 w-fit rounded-2xl bg-emerald-100/50 mb-6">
+              <TrendingUp className="h-6 w-6 text-emerald-600" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-slate-500 uppercase tracking-widest mb-1.5">Avg Intent</p>
+              <h3 className="text-4xl font-bold text-slate-800">{stats.avgIntent}<span className="text-xl text-slate-400 font-normal">/10</span></h3>
             </div>
           </div>
-          <div className="glass-card rounded-2xl p-5">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-red-500/10">
-                <Zap className="h-5 w-5 text-red-500" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">{stats.highIntent}</p>
-                <p className="text-xs text-muted-foreground font-medium">High Intent (7+)</p>
-              </div>
+
+          <div className="bg-primary/5 rounded-[2rem] p-8 border border-primary/20 flex flex-col justify-between shadow-sm relative overflow-hidden">
+            <div className="absolute -right-4 -top-4 w-32 h-32 bg-primary/10 rounded-full blur-2xl"></div>
+            <div className="p-4 w-fit rounded-2xl bg-white shadow-sm mb-6 relative z-10">
+              <Zap className="h-6 w-6 text-primary" />
             </div>
-          </div>
-          <div className="glass-card rounded-2xl p-5">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-emerald-500/10">
-                <Users className="h-5 w-5 text-emerald-600" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">{stats.uniquePersonas}</p>
-                <p className="text-xs text-muted-foreground font-medium">Unique Personas</p>
-              </div>
+            <div className="relative z-10">
+              <p className="text-sm font-bold text-primary/80 uppercase tracking-widest mb-1.5">High Intent</p>
+              <h3 className="text-4xl font-bold text-primary">{stats.highIntent}</h3>
             </div>
           </div>
         </div>

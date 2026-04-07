@@ -75,6 +75,7 @@ export function AccountCard({ account, className }: AccountCardProps) {
     ai_summary, recommended_actions, tech_stack, business_signals, raw_visitor_data,
   } = latestEnrichment
 
+  const domain = account.domain
   const companyProfile  = raw_visitor_data?._meta?.companyProfile
   const visitorProfile  = raw_visitor_data?._meta?.visitorProfileAnalysis
   const intentSignals: string[] = raw_visitor_data?._meta?.preComputedIntent?.signals ?? []
@@ -85,367 +86,225 @@ export function AccountCard({ account, className }: AccountCardProps) {
     : []
 
   return (
-    <div className={cn(
-      'overflow-hidden rounded-2xl border bg-card text-card-foreground shadow-sm hover:shadow-lg transition-all duration-300 animate-slide-up',
-      className
-    )}>
-      {/* Top accent bar */}
-      <div className="absolute inset-x-0 top-0 h-1 gradient-primary pointer-events-none" style={{ position: 'relative', height: 4, marginBottom: -4 }}>
-        <div className="h-full gradient-primary" />
-      </div>
-
-      {/* ── Header ────────────────────────────────────────────── */}
-      <div className="p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div className="flex items-center gap-4">
-          {/* Logo */}
-          <div className="h-14 w-14 rounded-xl bg-white border-2 border-slate-100 shadow-sm flex items-center justify-center overflow-hidden flex-shrink-0">
-            {account.logo_url
-              ? <img src={account.logo_url} alt={account.name} className="object-contain w-10 h-10" />
-              : <Building className="h-7 w-7 text-muted-foreground" />
-            }
+    <div className={`bg-white rounded-3xl overflow-hidden border border-slate-200 shadow-sm flex flex-col md:flex-row animate-slide-up ${className}`}>
+      
+      {/* LEFT PANE: Firmographics Foundation (Sticky) */}
+      <div className="md:w-[35%] border-b md:border-b-0 md:border-r border-slate-100 bg-slate-50/50 p-6 flex flex-col justify-between">
+        <div>
+          <div className="flex items-start justify-between mb-6">
+            <div className="h-14 w-14 bg-white border border-slate-200 rounded-xl flex items-center justify-center shadow-sm text-xl font-bold text-slate-800 overflow-hidden">
+              {account.logo_url ? <img src={account.logo_url} className="w-10 h-10 object-contain" /> : (
+                domain ? domain.charAt(0).toUpperCase() : <Building className="h-6 w-6 text-slate-400" />
+              )}
+            </div>
+            
+            {/* Intent Score Ring */}
+            {intent_score !== undefined && intent_score !== null && (
+              <div className="flex flex-col items-center">
+                <IntentScoreRing score={intent_score} size={56} />
+                <span className="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-wider">Intent</span>
+              </div>
+            )}
           </div>
-
-          <div>
-            <h3 className="text-xl font-bold flex items-center gap-2 flex-wrap">
-              {account.name}
-              {intent_score !== null && intent_score !== undefined && intent_score >= 8 && (
-                <span className="animate-pulse" title="High Intent">🔥</span>
-              )}
-              {companyProfile?.businessModel && (
-                <span className="text-xs font-medium bg-primary/10 text-primary px-2 py-0.5 rounded-full">
-                  {companyProfile.businessModel}
-                </span>
-              )}
-            </h3>
-
-            <div className="text-sm text-muted-foreground flex flex-wrap items-center gap-1.5 mt-1">
-              {account.domain && (
-                <a
-                  href={`https://${account.domain}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 hover:text-primary transition-colors"
-                  onClick={e => e.stopPropagation()}
-                >
-                  <Globe className="h-3 w-3" />
-                  {account.domain}
-                  <ExternalLink className="h-2.5 w-2.5 opacity-60" />
-                </a>
-              )}
-              {account.industry && (
-                <>
-                  <span className="text-border">·</span>
-                  <span className="inline-flex items-center gap-1">
-                    <Briefcase className="h-3 w-3" />{account.industry}
-                  </span>
-                </>
-              )}
-              {account.headquarters && (
-                <>
-                  <span className="text-border">·</span>
-                  <span className="inline-flex items-center gap-1">
-                    <MapPin className="h-3 w-3" />{account.headquarters}
-                  </span>
-                </>
-              )}
-            </div>
-
-            <div className="text-xs text-muted-foreground flex flex-wrap items-center gap-2 mt-1">
-              {account.size && (
-                <span className="inline-flex items-center gap-1">
-                  <Hash className="h-3 w-3" />{account.size}
-                </span>
-              )}
-              {account.founded_year && (
-                <span className="inline-flex items-center gap-1">
-                  <Calendar className="h-3 w-3" />Est. {account.founded_year}
-                </span>
-              )}
-            </div>
-
-            {/* Pages visited chips */}
-            {pagesVisited.length > 0 && (
-              <div className="flex flex-wrap gap-1 mt-2">
-                {pagesVisited.map((p, i) => (
-                  <span key={i} className="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md font-mono">
-                    {p}
-                  </span>
-                ))}
+          
+          <h2 className="text-2xl font-black text-slate-900 mb-1">{account.name || domain || 'Unknown Company'}</h2>
+          
+          {domain && (
+            <a href={`https://${domain}`} target="_blank" className="text-sm font-medium text-primary flex items-center gap-1 hover:underline mb-4 w-fit">
+              <Globe className="h-3.5 w-3.5" /> {domain}
+            </a>
+          )}
+          
+          <div className="flex flex-wrap gap-2 mb-8">
+             {intent_stage && <StageBadge stage={intent_stage} />}
+             {likely_persona && (
+               <span className="bg-slate-200 text-slate-700 px-2.5 py-1 rounded-full text-xs font-semibold flex items-center gap-1 border border-slate-300">
+                 <Users className="h-3 w-3" /> {likely_persona}
+               </span>
+             )}
+          </div>
+          
+          <div className="space-y-4">
+            {account.industry && (
+              <div>
+                <div className="text-[10px] uppercase tracking-widest font-bold text-slate-400 mb-0.5">Industry</div>
+                <div className="text-sm font-medium text-slate-700 flex items-center gap-1.5">
+                  <Briefcase className="h-3.5 w-3.5" /> {account.industry}
+                </div>
+              </div>
+            )}
+            {account.headquarters && (
+              <div>
+                <div className="text-[10px] uppercase tracking-widest font-bold text-slate-400 mb-0.5">Location</div>
+                <div className="text-sm font-medium text-slate-700 flex items-center gap-1.5">
+                  <MapPin className="h-3.5 w-3.5" /> {account.headquarters}
+                </div>
+              </div>
+            )}
+            {account.size && (
+              <div>
+                <div className="text-[10px] uppercase tracking-widest font-bold text-slate-400 mb-0.5">Company Size</div>
+                <div className="text-sm font-medium text-slate-700 flex items-center gap-1.5">
+                  <Hash className="h-3.5 w-3.5" /> {account.size}
+                </div>
               </div>
             )}
           </div>
         </div>
-
-        {/* Right: visitor stats + intent ring */}
-        <div className="flex flex-col sm:flex-row items-end sm:items-center gap-5 shrink-0">
-          {raw_visitor_data && (raw_visitor_data.dwell_time_seconds > 0 || raw_visitor_data.visits_this_week > 0) && (
-            <div className="hidden sm:flex flex-col gap-1 text-right border-r border-border/50 pr-5 mr-1">
-              <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Visitor Behavior</div>
-              {raw_visitor_data.dwell_time_seconds > 0 && (
-                <div className="text-xs text-foreground/90 flex items-center justify-end gap-1.5">
-                  <span className="font-medium">
-                    {raw_visitor_data.dwell_time_seconds >= 60
-                      ? `${Math.floor(raw_visitor_data.dwell_time_seconds / 60)}m ${raw_visitor_data.dwell_time_seconds % 60}s`
-                      : `${raw_visitor_data.dwell_time_seconds}s`}
-                  </span>
-                  <span className="text-muted-foreground">on site ⏱️</span>
-                </div>
-              )}
-              {raw_visitor_data.visits_this_week > 0 && (
-                <div className="text-xs text-foreground/90 flex items-center justify-end gap-1.5">
-                  <span className="font-medium">{raw_visitor_data.visits_this_week}</span>
-                  <span className="text-muted-foreground">visits this week 📈</span>
-                </div>
-              )}
-              {raw_visitor_data.referral_source && (
-                <div className="text-xs text-foreground/90 flex items-center justify-end gap-1.5">
-                  <span className="font-medium capitalize">{raw_visitor_data.referral_source}</span>
-                  <span className="text-muted-foreground">source 🔗</span>
-                </div>
-              )}
-            </div>
-          )}
-
-          {intent_score !== null && intent_score !== undefined && (
-            <div className="flex flex-col items-center gap-2">
-              <IntentScoreRing score={intent_score} />
-              <StageBadge stage={intent_stage} />
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* ── AI Summary + Persona ──────────────────────────────── */}
-      <div className="border-t border-border/60 grid grid-cols-1 md:grid-cols-3">
-        <div className="p-5 flex flex-col gap-2 border-b md:border-b-0 md:border-r border-border/60">
-          <div className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
-            <Users className="h-3.5 w-3.5" /> Likely Persona
-          </div>
-          {likely_persona ? (
-            <div>
-              <div className="font-semibold text-sm">{likely_persona}</div>
-              {persona_confidence != null && (
-                <div className="mt-2">
-                  <div className="flex justify-between text-[10px] text-muted-foreground mb-1">
-                    <span>Confidence</span>
-                    <span>{persona_confidence}%</span>
-                  </div>
-                  <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                    <div
-                      className="h-full rounded-full gradient-primary transition-all duration-700 ease-out"
-                      style={{ width: `${persona_confidence}%` }}
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="text-sm text-muted-foreground">Not identified</div>
-          )}
-        </div>
-
-        <div className="p-5 md:col-span-2">
-          <div className="text-[11px] font-bold uppercase tracking-widest text-primary flex items-center gap-1.5 mb-2">
-            <Sparkles className="h-3.5 w-3.5" /> AI Account Intelligence Summary
-          </div>
-          <p className="text-sm leading-relaxed text-foreground/80">
-            {ai_summary || 'No summary available.'}
-          </p>
-
-          {/* Key products */}
-          {companyProfile?.keyProducts?.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 mt-3">
-              {companyProfile.keyProducts.slice(0, 5).map((p: string, i: number) => (
-                <span key={i} className="inline-flex items-center gap-1 text-xs bg-primary/8 text-primary px-2 py-0.5 rounded-md border border-primary/20">
-                  <Package className="h-2.5 w-2.5" />{p}
-                </span>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* ── Visitor Profile Analysis ──────────────────────────── */}
-      {visitorProfile && (
-        <div className="border-t border-border/60 bg-muted/30">
-          <div className="px-5 py-4 border-b border-border/60">
-             <div className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
-               <Users className="h-3.5 w-3.5" /> Visitor Profile Analysis
+        
+        {raw_visitor_data && (
+          <div className="mt-8 pt-5 border-t border-slate-200/50">
+             <div className="text-[10px] uppercase tracking-widest font-bold text-slate-400 mb-2 flex items-center justify-between">
+               <span>Time on Site</span>
+               <span className="text-slate-700 font-semibold text-xs">
+                 {raw_visitor_data.dwell_time_seconds >= 60 
+                   ? `${Math.floor(raw_visitor_data.dwell_time_seconds / 60)}m ${raw_visitor_data.dwell_time_seconds % 60}s` 
+                   : `${raw_visitor_data.dwell_time_seconds}s`}
+               </span>
+             </div>
+             <div className="text-[10px] uppercase tracking-widest font-bold text-slate-400 mb-2 flex items-center justify-between">
+               <span>Page Views</span>
+               <span className="text-slate-700 font-semibold text-xs">{pagesVisited.length}</span>
+             </div>
+             <div className="text-[10px] uppercase tracking-widest font-bold text-slate-400 flex items-center justify-between">
+               <span>Visits (Week)</span>
+               <span className="text-slate-700 font-semibold text-xs">{raw_visitor_data.visits_this_week}</span>
              </div>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-border/60">
-            <div className="p-4">
-              <div className="text-[10px] font-bold text-muted-foreground mb-2 flex items-center gap-1"><Tag className="h-3 w-3" /> Segments</div>
-              {visitorProfile.segments?.length > 0 ? (
-                <ul className="space-y-1.5 list-disc pl-3">
-                  {visitorProfile.segments.map((s: string, i: number) => <li key={i} className="text-xs text-foreground/80">{s}</li>)}
-                </ul>
-              ) : <div className="text-xs text-muted-foreground">None identified</div>}
-            </div>
-            <div className="p-4">
-              <div className="text-[10px] font-bold text-muted-foreground mb-2 flex items-center gap-1"><Zap className="h-3 w-3" /> Behaviours</div>
-              {visitorProfile.behaviours?.length > 0 ? (
-                <ul className="space-y-1.5 list-disc pl-3">
-                  {visitorProfile.behaviours.map((b: string, i: number) => <li key={i} className="text-xs text-foreground/80">{b}</li>)}
-                </ul>
-              ) : <div className="text-xs text-muted-foreground">No specific behaviour</div>}
-            </div>
-            <div className="p-4">
-              <div className="text-[10px] font-bold text-muted-foreground mb-2 flex items-center gap-1"><Briefcase className="h-3 w-3" /> Attributes</div>
-              {visitorProfile.attributes?.length > 0 ? (
-                <ul className="space-y-1.5 list-disc pl-3">
-                  {visitorProfile.attributes.map((a: string, i: number) => <li key={i} className="text-xs text-foreground/80">{a}</li>)}
-                </ul>
-              ) : <div className="text-xs text-muted-foreground">Unknown attributes</div>}
-            </div>
-            <div className="p-4">
-              <div className="text-[10px] font-bold text-muted-foreground mb-2 flex items-center gap-1"><Sparkles className="h-3 w-3" /> Insights</div>
-              {visitorProfile.insights?.length > 0 ? (
-                <ul className="space-y-1.5 list-disc pl-3">
-                  {visitorProfile.insights.map((ins: string, i: number) => <li key={i} className="text-xs text-foreground/80 leading-tight">{ins}</li>)}
-                </ul>
-              ) : <div className="text-xs text-muted-foreground">No insights available</div>}
-            </div>
-          </div>
-        </div>
-      )}
+        )}
+      </div>
 
-      {/* ── Sales Playbook + Intent Signals ──────────────────── */}
-      <div className="border-t border-border/60 grid grid-cols-1 md:grid-cols-2">
-        <div className="p-5 border-b md:border-b-0 md:border-r border-border/60">
-          <div className="text-[11px] font-bold uppercase tracking-widest text-primary mb-3 flex items-center gap-1.5">
-            <Zap className="h-3.5 w-3.5" /> Recommended Sales Actions
+      {/* RIGHT PANE: AI Intelligence Feed (Scrollable) */}
+      <div className="md:w-[65%] flex flex-col bg-white">
+        
+        {/* Core Intelligence Feed */}
+        <div className="p-6 md:p-8 flex-1">
+          <div className="mb-8">
+            <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2 mb-3">
+              <Sparkles className="h-4 w-4 text-primary" /> AI Intelligence Summary
+            </h3>
+            <p className="text-slate-600 leading-relaxed text-sm">
+              {ai_summary || 'No summary available.'}
+            </p>
           </div>
-          {recommended_actions && recommended_actions.length > 0 ? (
-            <div className="space-y-2.5">
-              <div className="text-sm font-semibold text-foreground bg-primary/5 border border-primary/10 rounded-lg px-3 py-2 flex items-start gap-2">
-                <span className="text-primary mt-0.5">⚡</span>
-                {recommended_actions[0]}
+          
+          {/* Action List */}
+          <div className="mb-8 p-5 bg-orange-50/50 rounded-2xl border border-orange-100/50">
+            <h3 className="text-[11px] font-bold text-orange-600 uppercase tracking-widest flex items-center gap-1.5 mb-4">
+              <Zap className="h-3.5 w-3.5" /> Recommended Sales Plays
+            </h3>
+            {recommended_actions && recommended_actions.length > 0 ? (
+              <ul className="space-y-3">
+                {recommended_actions.map((action, idx) => (
+                  <li key={idx} className="flex gap-3 text-sm bg-white border border-orange-100 rounded-xl p-3 shadow-sm">
+                    <div className="h-6 w-6 shrink-0 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center font-bold text-xs mt-0.5">
+                      {idx + 1}
+                    </div>
+                    <span className="text-slate-700 leading-snug">{action}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-sm text-slate-500 italic">No AI actions generated.</p>
+            )}
+          </div>
+          
+          {/* Visitor Analysis */}
+          {visitorProfile && (
+            <div className="mb-8">
+              <h3 className="text-[11px] font-bold text-blue-600 uppercase tracking-widest flex items-center gap-1.5 mb-4">
+                <Users className="h-3.5 w-3.5" /> Granular Visitor Context
+              </h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                 {/* Segments */}
+                 <div className="md:col-span-2 bg-blue-50/50 rounded-xl p-4 border border-blue-100">
+                    <div className="text-[10px] font-bold text-blue-500 mb-2.5 uppercase tracking-widest flex items-center gap-1"><Tag className="h-3 w-3" /> Segments</div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {visitorProfile.segments?.length > 0 ? visitorProfile.segments.map((s: string, i: number) => (
+                        <span key={i} className="px-2.5 py-1 bg-white border border-blue-200 text-blue-700 rounded-lg text-xs font-semibold">{s}</span>
+                      )) : <span className="text-xs text-slate-400 italic">No segments identified</span>}
+                    </div>
+                 </div>
+                 {/* Behaviours */}
+                 <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
+                    <div className="text-[10px] font-bold text-slate-400 mb-2.5 uppercase tracking-widest flex items-center gap-1"><Zap className="h-3 w-3" /> Behaviours</div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {visitorProfile.behaviours?.length > 0 ? visitorProfile.behaviours.map((b: string, i: number) => (
+                        <span key={i} className="px-2 py-1 bg-white border border-slate-200 text-slate-600 rounded-md text-xs">{b}</span>
+                      )) : <span className="text-xs text-slate-400 italic">No behaviours detected</span>}
+                    </div>
+                 </div>
+                 {/* Attributes */}
+                 <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
+                    <div className="text-[10px] font-bold text-slate-400 mb-2.5 uppercase tracking-widest flex items-center gap-1"><Users className="h-3 w-3" /> Attributes</div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {visitorProfile.attributes?.length > 0 ? visitorProfile.attributes.map((a: string, i: number) => (
+                        <span key={i} className="px-2 py-1 bg-white border border-slate-200 text-slate-600 rounded-md text-xs">{a}</span>
+                      )) : <span className="text-xs text-slate-400 italic">No attributes identified</span>}
+                    </div>
+                 </div>
+                 {/* Insights */}
+                 <div className="md:col-span-2 bg-primary/5 rounded-xl p-4 border border-primary/10">
+                    <div className="text-[10px] font-bold text-primary mb-2.5 uppercase tracking-widest flex items-center gap-1"><Sparkles className="h-3 w-3" /> Key Insights</div>
+                    {visitorProfile.insights?.length > 0 ? (
+                      <ul className="list-disc pl-4 text-xs space-y-1.5 text-slate-700 font-medium">
+                        {visitorProfile.insights.map((ins: string, i: number) => (
+                          <li key={i}>{ins}</li>
+                        ))}
+                      </ul>
+                    ) : <span className="text-xs text-slate-400 italic">No insights available</span>}
+                 </div>
               </div>
-              {recommended_actions.slice(1).map((action, i) => (
-                <div key={i} className="text-sm flex gap-2.5 items-start">
-                  <span className="flex-shrink-0 w-5 h-5 rounded-full gradient-primary flex items-center justify-center mt-0.5">
-                    <ChevronRight className="h-3 w-3 text-white" />
-                  </span>
-                  <span className="text-foreground/80">{action}</span>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-sm text-muted-foreground flex items-center gap-2">
-              <AlertCircle className="h-4 w-4" /> No actions recommended
             </div>
           )}
+          
+          {/* Business Signals & Tech */}
+           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-slate-100">
+             <div>
+               <h3 className="text-[11px] font-bold text-emerald-600 uppercase tracking-widest flex items-center gap-1.5 mb-3">
+                 <TrendingUp className="h-3.5 w-3.5" /> Business Signals
+               </h3>
+               {business_signals && business_signals.length > 0 ? (
+                 <ul className="space-y-2.5">
+                   {business_signals.slice(0, 4).map((signal, idx) => (
+                     <li key={idx} className="flex gap-2 text-xs">
+                       <span className="text-emerald-500 mt-0.5 block flex-shrink-0">●</span>
+                       <span className="text-slate-600 leading-snug">{typeof signal === 'string' ? signal : JSON.stringify(signal)}</span>
+                     </li>
+                   ))}
+                 </ul>
+               ) : (
+                 <span className="text-xs text-slate-400">No signals detected.</span>
+               )}
+             </div>
+             
+             <div>
+               <h3 className="text-[11px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-1.5 mb-3">
+                 <Shield className="h-3.5 w-3.5" /> Tech Stack
+               </h3>
+               <div className="flex flex-wrap gap-1.5">
+                 {techEntries.slice(0, 8).map(([tech, _], i) => (
+                   <span key={i} className="px-2 py-0.5 bg-slate-50 border border-slate-200 rounded-md text-[10px] font-medium text-slate-600">
+                     {tech}
+                   </span>
+                 ))}
+                 {techEntries.length > 8 && (
+                   <span className="text-[10px] text-slate-400 py-0.5 ml-1">+{techEntries.length - 8} more</span>
+                 )}
+               </div>
+             </div>
+           </div>
         </div>
-
-        <div className="p-5">
-          <div className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-3 flex items-center gap-1.5">
-            <TrendingUp className="h-3.5 w-3.5" /> Intent Signals
-          </div>
-          {intentSignals.length > 0 ? (
-            <ul className="space-y-2">
-              {intentSignals.slice(0, 6).map((signal, i) => (
-                <li key={i} className="text-sm flex gap-2 items-start">
-                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 mt-0.5 flex-shrink-0" />
-                  <span className="text-foreground/80">{signal}</span>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <div className="text-sm text-muted-foreground flex items-center gap-2">
-              <AlertCircle className="h-4 w-4" /> No signals detected
-            </div>
-          )}
+        
+        {/* Footer */}
+        <div className="px-6 py-4 border-t border-slate-100 bg-slate-50/50 flex justify-between items-center text-xs">
+          <span className="text-slate-400 font-mono">ID: {account.id.substring(0, 8)}</span>
+          <Link href={`/accounts/${account.id}`} className="text-primary font-bold hover:underline flex items-center gap-1">
+            Open Full Dossier <ExternalLink className="h-3 w-3" />
+          </Link>
         </div>
-      </div>
-
-      {/* ── Business Signals + Tech Stack + Leadership ────────── */}
-      <div className={`bg-white rounded-2xl overflow-hidden border border-slate-200 ${className}`}>
-        {/* Top Banner section */}
-        <div className="p-6 pb-5 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 relative overflow-hidden">
-          {/* subtle highlight at top */}
-          <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-blue-300 to-transparent"></div>
-          <div className="text-[11px] font-bold uppercase tracking-widest text-slate-400 mb-3 flex items-center gap-1.5">
-            <TrendingUp className="h-3.5 w-3.5" /> Business Signals
-          </div>
-          {business_signals && business_signals.length > 0 ? (
-            <ul className="space-y-2">
-              {business_signals.slice(0, 5).map((signal, i) => (
-                <li key={i} className="text-xs flex gap-2 items-start">
-                  <span className="text-amber-500 mt-0.5 flex-shrink-0">📈</span>
-                  <span className="text-foreground/80">
-                    {typeof signal === 'string' ? signal : JSON.stringify(signal)}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <div className="text-sm text-muted-foreground flex items-center gap-2">
-              <AlertCircle className="h-4 w-4" /> No signals found
-            </div>
-          )}
-        </div>
-
-        {/* Tech stack */}
-        <div className="p-5 border-b md:border-b-0 md:border-r border-border/60">
-          <div className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-3 flex items-center gap-1.5">
-            <Shield className="h-3.5 w-3.5" /> Technology Stack
-          </div>
-          {techEntries.length > 0 ? (
-            <div className="space-y-1.5">
-              {techEntries.slice(0, 8).map(([tech, v], i) => (
-                <div key={i} className="flex items-center gap-2">
-                  <span className="text-[10px] text-muted-foreground w-[100px] flex-shrink-0 truncate">
-                    {typeof v === 'string' ? v : (TECH_CATEGORIES[tech] || 'Other')}:
-                  </span>
-                  <span className="text-xs font-semibold text-foreground truncate">{tech}</span>
-                </div>
-              ))}
-              {techEntries.length > 8 && (
-                <div className="text-[10px] text-muted-foreground pt-1">
-                  +{techEntries.length - 8} more via BuiltWith
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="text-sm text-muted-foreground flex items-center gap-2">
-              <AlertCircle className="h-4 w-4" /> No tech detected
-            </div>
-          )}
-        </div>
-
-        {/* Leadership */}
-        <div className="p-5">
-          <div className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-3 flex items-center gap-1.5">
-            <Users className="h-3.5 w-3.5" /> Leadership
-          </div>
-          {companyProfile?.leadershipMentions?.length > 0 ? (
-            <div className="space-y-2">
-              {companyProfile.leadershipMentions.map((name: string, i: number) => (
-                <div key={i} className="text-xs flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                    <span className="text-[10px] font-bold text-primary">{name.charAt(0)}</span>
-                  </span>
-                  <span className="font-medium">{name}</span>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-sm text-muted-foreground flex items-center gap-2">
-              <AlertCircle className="h-4 w-4" /> No leadership data
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* ── Footer: view full profile ─────────────────────────── */}
-      <div className="border-t border-border/60 px-6 py-3 bg-muted/30 flex justify-end">
-        <Link
-          href={`/accounts/${account.id}`}
-          className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-primary transition-colors"
-        >
-          View full profile <ExternalLink className="h-3 w-3" />
-        </Link>
+        
       </div>
     </div>
   )

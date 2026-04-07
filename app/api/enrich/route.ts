@@ -310,6 +310,7 @@ export async function POST(request: Request) {
           preComputedPersona: personaResult,
           preComputedIntent: intentResult,
           companyProfile: aiAnalysis.companyProfile,
+          visitorProfileAnalysis: aiAnalysis.visitorProfileAnalysis,
         }
       },
       created_at: new Date().toISOString(),
