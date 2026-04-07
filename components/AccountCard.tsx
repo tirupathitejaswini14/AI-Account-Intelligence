@@ -246,7 +246,7 @@ export function AccountCard({ account, className }: AccountCardProps) {
 
         <div className="p-5 md:col-span-2">
           <div className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5 mb-2">
-            <Sparkles className="h-3.5 w-3.5" /> AI Summary
+            <Sparkles className="h-3.5 w-3.5" /> AI Account Intelligence Summary
           </div>
           <p className="text-sm leading-relaxed text-foreground/90">
             {ai_summary || 'No summary available.'}
@@ -314,7 +314,7 @@ export function AccountCard({ account, className }: AccountCardProps) {
       <div className="border-t border-border/60 grid grid-cols-1 md:grid-cols-2">
         <div className="p-5 border-b md:border-b-0 md:border-r border-border/60">
           <div className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-3 flex items-center gap-1.5">
-            <Zap className="h-3.5 w-3.5" /> Sales Playbook
+            <Zap className="h-3.5 w-3.5" /> Recommended Sales Actions
           </div>
           {recommended_actions && recommended_actions.length > 0 ? (
             <div className="space-y-2.5">

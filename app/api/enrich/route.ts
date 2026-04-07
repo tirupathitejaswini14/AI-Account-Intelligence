@@ -16,7 +16,8 @@ const COMMON_ISPS = [
   'comcast', 'verizon', 'att', 'at&t', 'spectrum', 't-mobile', 'cox', 'charter',
   'centurylink', 'frontier', 'windstream', 'mediacom', 'suddenlink', 'optimum', 'xfinity',
   'google fiber', 'google llc', 'amazon.com', 'amazon technologies', 'microsoft corporation',
-  'aws', 'azure', 'digitalocean', 'linode', 'hetzner', 'ovh', 'cloudflare', 'fastly', 'akamai'
+  'aws', 'azure', 'digitalocean', 'linode', 'hetzner', 'ovh', 'cloudflare', 'fastly', 'akamai',
+  'reliance jio', 'jio', 'bharti airtel', 'airtel', 'bsnl', 'hathway', 'act fibernet', 'vodafone', 'idea cellular'
 ]
 
 export async function POST(request: Request) {
