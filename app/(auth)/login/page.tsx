@@ -53,7 +53,7 @@ export default function LoginPage() {
     <div className="flex min-h-[80vh] items-center justify-center p-4">
       <div className="w-full max-w-sm glass-card rounded-2xl p-8 shadow-xl animate-slide-up">
         <div className="flex flex-col items-center mb-8">
-          <div className="gradient-primary p-3 rounded-xl shadow-sm mb-4">
+          <div className="gradient-primary p-3 rounded-xl shadow-[0_0_20px_rgba(0,240,255,0.4)] mb-4">
             <Zap className="h-6 w-6 text-white" />
           </div>
           <h1 className="text-2xl font-bold tracking-tight">AccountIQ</h1>
@@ -70,7 +70,7 @@ export default function LoginPage() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="flex h-11 w-full rounded-xl border-2 bg-white/50 px-4 py-2 text-sm transition-colors focus:border-primary focus:outline-none"
+              className="flex h-11 w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm transition-colors focus:border-primary focus:bg-white/10 focus:outline-none"
               placeholder="name@company.com"
             />
           </div>
@@ -81,13 +81,13 @@ export default function LoginPage() {
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="flex h-11 w-full rounded-xl border-2 bg-white/50 px-4 py-2 text-sm transition-colors focus:border-primary focus:outline-none"
+              className="flex h-11 w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm transition-colors focus:border-primary focus:bg-white/10 focus:outline-none"
               placeholder="••••••••"
             />
           </div>
 
           {error && (
-            <div className="text-sm text-red-500 bg-red-50 border border-red-200 p-3 rounded-lg flex-wrap break-words">
+            <div className="text-sm text-red-400 bg-red-400/10 border border-red-400/20 p-3 rounded-lg flex-wrap break-words">
               {error}
             </div>
           )}

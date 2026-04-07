@@ -83,12 +83,16 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div className="space-y-6 animate-fade-in relative">
+      <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-[120px] -z-10 pointer-events-none"></div>
+      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-accent/10 rounded-full blur-[120px] -z-10 pointer-events-none"></div>
+      
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-10">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Intelligence Dashboard</h1>
-          <p className="text-muted-foreground mt-1 text-sm">View and manage your enriched account intelligence.</p>
+          <h1 className="text-4xl font-extrabold tracking-tight mb-2 flex items-center gap-3">
+            <span className="gradient-text-primary">Intelligence</span> Dashboard
+          </h1>
+          <p className="text-muted-foreground">Track enriched visitor signals and target account intel.</p>
         </div>
         <Link 
           href="/enrich"
@@ -101,7 +105,7 @@ export default function DashboardPage() {
 
       {/* Stats Cards */}
       {accounts.length > 0 && (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 stagger-children">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 stagger-children relative z-10">
           <div className="glass-card rounded-2xl p-5">
             <div className="flex items-center gap-3">
               <div className="p-2.5 rounded-xl bg-primary/10">
