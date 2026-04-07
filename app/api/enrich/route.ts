@@ -69,11 +69,23 @@ export async function POST(request: Request) {
       // Clean org name: remove AS numbers like "AS14618 Amazon.com, Inc."
       orgName = orgName.replace(/^AS\d+\s+/i, '').trim()
       
+      // Special case: If testing locally or from a private IP, mock a real company
+      // so the user can test the intelligence pipeline without a corporate VPN.
+      const isLocal = ipData?.query === '127.0.0.1' || ipData?.query === '::1' || 
+                     /^192\.168\.|^10\.|^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(ipData?.query || '') ||
+                     !ipData;
+
+      if (isLocal) {
+        orgName = 'Stripe'
+        domain = 'stripe.com'
+        companyMetadata.note = 'MOCK LOCAHOST DATA: Showing Stripe as fallback for local testing'
+      }
+
       const isISP = COMMON_ISPS.some(isp => orgName.toLowerCase().includes(isp))
       
       if (orgName && !isISP) {
         companyName = orgName
-        companyMetadata.location = [ipData.city, ipData.regionName, ipData.country].filter(Boolean).join(', ')
+        companyMetadata.location = isLocal ? 'San Francisco, CA, United States' : [ipData.city, ipData.regionName, ipData.country].filter(Boolean).join(', ')
         companyMetadata.ip_resolved = true
       } else {
         // Graceful fallback for consumer IPs — still process with what we have
